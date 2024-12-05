@@ -72,9 +72,33 @@ app.get('/', (req, res) => {
 // Adding Item
 app.post('/add-item', upload.single('photo'), async (req, res) => {
   const { username, days_to_store, expiry_date, fridge } = req.body;
-  
-  if (!username || !fridge || !req.file) {
-    return res.status(400).redirect('/?error=Username,+Fridge+selection,+and+a+valid+image+are+required.');
+
+  // Validate username length (at least 3 chars)
+  if (!username || username.trim().length < 3) {
+    // Delete the uploaded file if any (in case user tried to upload but validation fails)
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err.message);
+      });
+    }
+    return res.status(400).redirect('/?error=Username must be at least 3 characters long.');
+  }
+
+  // Validate picture presence
+  if (!req.file) {
+    // No picture uploaded
+    return res.status(400).redirect('/?error=Picture is missing.');
+  }
+
+  // Validate fridge selection
+  if (!fridge) {
+    // Delete the uploaded file if fridge is missing
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err.message);
+      });
+    }
+    return res.status(400).redirect('/?error=Fridge selection is required.');
   }
 
   let expiryDate;
@@ -86,12 +110,24 @@ app.post('/add-item', upload.single('photo'), async (req, res) => {
     // Calculate expiry date based on days_to_store
     const days = parseInt(days_to_store, 10);
     if (isNaN(days) || days < 1) {
-      return res.status(400).redirect('/?error=Please+enter+a+valid+number+of+days+to+store.');
+      // Delete the uploaded file if days_to_store is invalid
+      if (req.file && req.file.path) {
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error('Error deleting file:', err.message);
+        });
+      }
+      return res.status(400).redirect('/?error=Please enter a valid number of days to store.');
     }
     expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + days);
   } else {
-    return res.status(400).redirect('/?error=Please+provide+either+Days+to+Store+or+Expiry+Date.');
+    // Delete the uploaded file if neither expiry_date nor days_to_store is provided
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err.message);
+      });
+    }
+    return res.status(400).redirect('/?error=Please provide either Days to Store or Expiry Date.');
   }
 
   const dateAdded = new Date();
@@ -105,22 +141,34 @@ app.post('/add-item', upload.single('photo'), async (req, res) => {
     await sharp(imagePath)
       .resize({ width: 800 })
       .toFile(`${imagePath}-resized`);
-    
+
     // Replace the original image with the resized one
     fs.unlinkSync(imagePath); // Remove original
     fs.renameSync(`${imagePath}-resized`, imagePath); // Rename resized
   } catch (error) {
     console.error('Error processing image:', error.message);
-    return res.status(500).redirect('/?error=Image+processing+failed.');
+    // Delete the uploaded file if image processing fails
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err.message);
+      });
+    }
+    return res.status(500).redirect('/?error=Image processing failed.');
   }
 
   db.run(`INSERT INTO items (username, date_added, expiry_date, fridge, image_path)
           VALUES (?, ?, ?, ?, ?)`,
-    [username, dateAddedStr, expiryDateStr, fridge, imagePath],
+    [username.trim(), dateAddedStr, expiryDateStr, fridge, imagePath],
     function(err) {
       if (err) {
         console.error('Error inserting item:', err.message);
-        return res.status(500).redirect('/?error=Failed+to+add+item+to+database.');
+        // Delete the uploaded file if database insertion fails
+        if (req.file && req.file.path) {
+          fs.unlink(req.file.path, (err) => {
+            if (err) console.error('Error deleting file:', err.message);
+          });
+        }
+        return res.status(500).redirect('/?error=Failed to add item to database.');
       }
       res.redirect('/?added=true');
     });

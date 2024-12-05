@@ -7,88 +7,92 @@
   <link href="/css/styles.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-yellow-100 min-h-screen">
   <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold text-center mb-8">Find Your Items</h1>
-    
-    <!-- Error Message -->
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="mb-4 text-red-500 text-center"><%= error %></div>
-    <% } %>
-    
-    <!-- Username Form -->
-    <form action="/my-items" method="POST" class="max-w-md mx-auto space-y-4">
-      <div>
-        <label for="username" class="block text-sm font-medium text-gray-700">Enter Your Username:</label>
-        <input 
-          type="text" 
-          name="username" 
-          id="username" 
-          required 
-          minlength="3"
-          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-        >
-      </div>
-      <div class="text-center">
-        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          Search
-        </button>
-      </div>
-    </form>
-    
-    <!-- Matching Usernames -->
-    <% if (typeof usernames !== 'undefined' && usernames.length > 0) { %>
-      <div class="mt-10">
-        <h2 class="text-2xl font-semibold mb-6 text-center">Select Your Username</h2>
-        <form action="/my-items/select-username" method="POST" class="max-w-md mx-auto space-y-4">
-          <div>
-            <select name="selectedUsername" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-              <% usernames.forEach(function(username) { %>
-                <option value="<%= username %>"><%= username %></option>
-              <% }); %>
-            </select>
-          </div>
-          <div class="text-center">
-            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-              Continue
-            </button>
-          </div>
-        </form>
-      </div>
-    <% } %>
-    
-    <!-- User's Items -->
-    <% if (typeof items !== 'undefined' && items.length >= 0) { %>
-      <div class="mt-10">
-        <h2 class="text-2xl font-semibold mb-6 text-center">Your Items<% if (typeof selectedUsername !== 'undefined') { %> - <%= selectedUsername %><% } %></h2>
-        <% if (items.length === 0) { %>
-          <p class="text-center text-gray-500">You have no items in the fridge.</p>
-        <% } else { %>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <% items.forEach(function(item) { %>
-              <div class="bg-green-100 p-4 rounded-lg shadow flex flex-col">
-                <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
-                <div class="flex-grow">
-                  <p><strong>Fridge:</strong> <%= item.fridge %></p>
-                  <p><strong>Added on:</strong> <%= item.date_added %></p>
-                  <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+    <div class="w-full max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold mb-8 text-center">Find Your Items</h1>
+      
+      <!-- Error Message -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="mb-4 text-red-500 text-center"><%= error %></div>
+      <% } %>
+      
+      <!-- Username Form -->
+      <form action="/my-items" method="POST" class="space-y-6">
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-700">Enter Your Username:</label>
+          <input 
+            type="text" 
+            name="username" 
+            id="username" 
+            required 
+            minlength="3"
+            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            placeholder="Your Username"
+          >
+        </div>
+        <div class="text-center">
+          <button type="submit" class="px-4 py-2 mr-2 bg-indigo-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            Search
+          </button>
+        </div>
+      </form>
+      
+      <!-- Matching Usernames -->
+      <% if (typeof usernames !== 'undefined' && usernames.length > 0) { %>
+        <div class="mt-10">
+          <h2 class="text-2xl font-semibold mb-6 text-center">Select Your Username</h2>
+          <form action="/my-items/select-username" method="POST" class="space-y-6">
+            <div>
+              <label for="selectedUsername" class="block text-sm font-medium text-gray-700">Your Username:</label>
+              <select name="selectedUsername" id="selectedUsername" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="">--Select Username--</option>
+                <% usernames.forEach(function(username) { %>
+                  <option value="<%= username %>"><%= username %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="px-4 py-2 mr-2 bg-green-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Continue
+              </button>
+            </div>
+          </form>
+        </div>
+      <% } %>
+      
+      <!-- User's Items -->
+      <% if (typeof items !== 'undefined' && selectedUsername) { %>
+        <div class="mt-10">
+          <h2 class="text-2xl font-semibold mb-6 text-center">Your Items <span class="text-indigo-600">(<%= selectedUsername %>)</span></h2>
+          <% if (items.length === 0) { %>
+            <p class="text-center text-gray-500">You have no items in the fridge.</p>
+          <% } else { %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <% items.forEach(function(item) { %>
+                <div class="bg-green-100 p-4 rounded-lg shadow flex flex-col">
+                  <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+                  <div class="flex-grow">
+                    <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                    <p><strong>Added on:</strong> <%= item.date_added %></p>
+                    <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                  </div>
+                  <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                    <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                      Remove
+                    </button>
+                  </form>
                 </div>
-                <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
-                  <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                    Remove
-                  </button>
-                </form>
-              </div>
-            <% }); %>
-          </div>
-        <% } %>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+      
+      <!-- Navigation Links -->
+      <div class="mt-6 text-center">
+        <a href="/" class="text-indigo-600 hover:text-indigo-800">Add item</a>
       </div>
-    <% } %>
-    
-    <!-- Navigation Links -->
-    <div class="mt-10 text-center">
-      <a href="/" class="text-indigo-600 hover:text-indigo-800">Back to Add Item</a> 
-      <!-- <a href="/monitor" class="text-indigo-600 hover:text-indigo-800">View Monitor</a> -->
     </div>
   </div>
 </body>
