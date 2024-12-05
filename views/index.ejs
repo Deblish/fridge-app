@@ -1,0 +1,150 @@
+<!-- views/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Item</title>
+  <link href="/css/styles.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6 text-center">Add Item to Fridge</h1>
+    
+    <!-- Error Message -->
+    <% if (typeof error !== 'undefined') { %>
+      <div class="mb-4 text-red-500 text-center"><%= error %></div>
+    <% } %>
+    
+    <!-- Toggle Buttons -->
+    <div class="flex justify-center mb-6">
+      <button 
+        id="toggle-days" 
+        class="px-4 py-2 mr-2 bg-indigo-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onclick="toggleInput('days')"
+      >
+        Days to Store
+      </button>
+      <button 
+        id="toggle-date" 
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onclick="toggleInput('date')"
+      >
+        Expiry Date
+      </button>
+    </div>
+    
+    <!-- Form -->
+    <form action="/add-item" method="POST" enctype="multipart/form-data" class="space-y-4">  
+      <!-- Days to Store -->
+      <div id="days-input">
+        <label for="days_to_store" class="block text-sm font-medium text-gray-700">Days to Store:</label>
+        <input 
+          type="number" 
+          name="days_to_store" 
+          min="1" 
+          max="365" 
+          value="1" 
+          required 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+      </div>
+      
+      <!-- Expiry Date -->
+      <div id="date-input" class="hidden">
+        <label for="expiry_date" class="block text-sm font-medium text-gray-700">Expiry Date:</label>
+        <input 
+          type="date" 
+          name="expiry_date" 
+          id="expiry_date" 
+          required 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+      </div>
+
+	  <!-- Fridge Selection -->
+      <div>
+        <label for="fridge" class="block text-sm font-medium text-gray-700">Fridge:</label>
+        <select 
+          name="fridge" 
+          required 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+          <option value="">--Select Fridge--</option>
+          <option value="Fridge A">Fridge A</option>
+          <option value="Fridge B">Fridge B</option>
+        </select>
+      </div>
+
+	  <!-- Photo Capture -->
+      <div>
+        <label for="photo" class="block text-sm font-medium text-gray-700">Photo of Item:</label>
+        <input 
+          type="file" 
+          name="photo" 
+          accept="image/jpeg, image/png, image/gif, image/bmp, image/webp" 
+          capture="environment" 
+          required 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+        <small class="text-gray-500">Supported formats: JPEG, PNG, GIF, BMP, WEBP</small>
+      </div>
+      
+      <!-- Username -->
+      <div>
+        <label for="username" class="block text-sm font-medium text-gray-700">Username:</label>
+        <input 
+          type="text" 
+          name="username" 
+          required 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+      </div>
+      
+      <!-- Submit Button -->
+      <div>
+        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          Add Item
+        </button>
+      </div>
+    </form>
+    
+    <!-- Navigation Links -->
+    <div class="mt-6 text-center">
+      <a href="/monitor" class="text-indigo-600 hover:text-indigo-800">View Monitor</a> | 
+      <a href="/my-items" class="text-indigo-600 hover:text-indigo-800">My Items</a>
+    </div>
+  </div>
+  
+  <!-- JavaScript for Toggle Functionality -->
+  <script>
+    function toggleInput(mode) {
+      const daysInput = document.getElementById('days-input');
+      const dateInput = document.getElementById('date-input');
+      const toggleDaysBtn = document.getElementById('toggle-days');
+      const toggleDateBtn = document.getElementById('toggle-date');
+      
+      if (mode === 'days') {
+        daysInput.classList.remove('hidden');
+        dateInput.classList.add('hidden');
+        toggleDaysBtn.classList.remove('bg-gray-200', 'text-gray-700');
+        toggleDaysBtn.classList.add('bg-indigo-600', 'text-white');
+        toggleDateBtn.classList.remove('bg-indigo-600', 'text-white');
+        toggleDateBtn.classList.add('bg-gray-200', 'text-gray-700');
+      } else if (mode === 'date') {
+        daysInput.classList.add('hidden');
+        dateInput.classList.remove('hidden');
+        toggleDateBtn.classList.remove('bg-gray-200', 'text-gray-700');
+        toggleDateBtn.classList.add('bg-indigo-600', 'text-white');
+        toggleDaysBtn.classList.remove('bg-indigo-600', 'text-white');
+        toggleDaysBtn.classList.add('bg-gray-200', 'text-gray-700');
+      }
+    }
+    
+    // Initialize with "Days to Store" active
+    document.addEventListener('DOMContentLoaded', () => {
+      toggleInput('days');
+    });
+  </script>
+</body>
+</html>

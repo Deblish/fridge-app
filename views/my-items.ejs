@@ -1,0 +1,78 @@
+<!-- views/my-items.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Items</title>
+  <link href="/css/styles.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold text-center mb-8">Remove Your Items</h1>
+    
+    <!-- Navigation Links -->
+    <div class="mt-10 text-center">
+      <a href="/monitor" class="text-indigo-600 hover:text-indigo-800">View Monitor</a>
+    </div>
+
+    <!-- Error Message -->
+    <% if (typeof error !== 'undefined') { %>
+      <div class="mb-4 text-red-500 text-center"><%= error %></div>
+    <% } %>
+    
+    <!-- Username Form -->
+    <form action="/my-items" method="POST" class="max-w-md mx-auto space-y-4">
+      <div>
+        <label for="username" class="block text-sm font-medium text-gray-700">Enter Your Username:</label>
+        <input 
+          type="text" 
+          name="username" 
+          id="username" 
+          required 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+      </div>
+      <div class="text-center">
+        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          View My Items
+        </button>
+      </div>
+    </form>
+    
+    <!-- User's Items -->
+    <% if (typeof items !== 'undefined') { %>
+      <div class="mt-10">
+        <h2 class="text-2xl font-semibold mb-6 text-center">Your Items</h2>
+        <% if (items.length === 0) { %>
+          <p class="text-center text-gray-500">You have no items in the fridge.</p>
+        <% } else { %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <% items.forEach(function(item) { %>
+              <div class="bg-green-100 p-4 rounded-lg shadow flex flex-col">
+                <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+                <div class="flex-grow">
+                  <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                  <p><strong>Added on:</strong> <%= item.date_added %></p>
+                  <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                </div>
+                <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                  <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+    
+    <!-- Navigation Links -->
+    <div class="mt-10 text-center">
+      <a href="/" class="text-indigo-600 hover:text-indigo-800">Back to Add Item</a>
+    </div>
+  </div>
+</body>
+</html>
+

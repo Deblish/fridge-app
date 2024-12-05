@@ -1,0 +1,338 @@
+<!-- views/monitor.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fridge Monitor</title>
+  <link href="/css/styles.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold text-center mb-8">Fridge Monitor</h1>
+    
+    <!-- Success Message -->
+    <% if (typeof deleted !== 'undefined' && deleted === 'true') { %>
+      <div class="mb-4 text-green-500 text-center">Item successfully removed.</div>
+    <% } %>
+    
+    <!-- View Mode Toggle Buttons -->
+    <div class="flex justify-center mb-6 space-x-4">
+      <button 
+        id="view-list" 
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onclick="setViewMode('list')"
+      >
+        List
+      </button>
+      <button 
+        id="view-preview" 
+        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onclick="setViewMode('preview')"
+      >
+        Preview
+      </button>
+      <button 
+        id="view-gallery" 
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onclick="setViewMode('gallery')"
+      >
+        Gallery
+      </button>
+    </div>
+    
+    <!-- List Mode -->
+    <section id="mode-list" class="hidden">
+      <!-- Expired Items List -->
+      <h2 class="text-2xl font-semibold mb-4">Expired Items</h2>
+      <% if (expired.length === 0) { %>
+        <p class="text-gray-500">No expired items.</p>
+      <% } else { %>
+        <ul class="space-y-2">
+          <% expired.forEach(function(item) { %>
+            <li class="flex justify-between items-center p-4 bg-red-100 rounded-lg">
+              <div>
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expired on:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+              </div>
+              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                  Remove
+                </button>
+              </form>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+      
+      <!-- Repeat similar sections for Expiring Today and Expiring Soon -->
+      
+      <!-- Expiring Today -->
+      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Today</h2>
+      <% if (expiringToday.length === 0) { %>
+        <p class="text-gray-500">No items expiring today.</p>
+      <% } else { %>
+        <ul class="space-y-2">
+          <% expiringToday.forEach(function(item) { %>
+            <li class="flex justify-between items-center p-4 bg-yellow-100 rounded-lg">
+              <div>
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expires today:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+              </div>
+              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                <button type="submit" class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                  Remove
+                </button>
+              </form>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+      
+      <!-- Expiring Soon -->
+      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Soon (Tomorrow)</h2>
+      <% if (expiringSoon.length === 0) { %>
+        <p class="text-gray-500">No items expiring tomorrow.</p>
+      <% } else { %>
+        <ul class="space-y-2">
+          <% expiringSoon.forEach(function(item) { %>
+            <li class="flex justify-between items-center p-4 bg-blue-100 rounded-lg">
+              <div>
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+              </div>
+              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  Remove
+                </button>
+              </form>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </section>
+    
+    <!-- Preview Mode -->
+    <section id="mode-preview" class="">
+      <!-- Expired Items Preview -->
+      <h2 class="text-2xl font-semibold mb-4">Expired Items</h2>
+      <% if (expired.length === 0) { %>
+        <p class="text-gray-500">No expired items.</p>
+      <% } else { %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <% expired.forEach(function(item) { %>
+            <div class="bg-red-100 p-4 rounded-lg shadow flex flex-col">
+              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+              <div class="flex-grow">
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expired on:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+              </div>
+              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                  Remove
+                </button>
+              </form>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+      
+      <!-- Repeat similar sections for Expiring Today and Expiring Soon -->
+      
+      <!-- Expiring Today -->
+      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Today</h2>
+      <% if (expiringToday.length === 0) { %>
+        <p class="text-gray-500">No items expiring today.</p>
+      <% } else { %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <% expiringToday.forEach(function(item) { %>
+            <div class="bg-yellow-100 p-4 rounded-lg shadow flex flex-col">
+              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+              <div class="flex-grow">
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expires today:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+              </div>
+              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                <button type="submit" class="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                  Remove
+                </button>
+              </form>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+      
+      <!-- Expiring Soon -->
+      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Soon (Tomorrow)</h2>
+      <% if (expiringSoon.length === 0) { %>
+        <p class="text-gray-500">No items expiring tomorrow.</p>
+      <% } else { %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <% expiringSoon.forEach(function(item) { %>
+            <div class="bg-blue-100 p-4 rounded-lg shadow flex flex-col">
+              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+              <div class="flex-grow">
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+              </div>
+              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  Remove
+                </button>
+              </form>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </section>
+    
+    <!-- Gallery Mode -->
+    <section id="mode-gallery" class="hidden">
+      <!-- Expired Items Gallery -->
+      <h2 class="text-2xl font-semibold mb-4">Expired Items</h2>
+      <% if (expired.length === 0) { %>
+        <p class="text-gray-500">No expired items.</p>
+      <% } else { %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <% expired.forEach(function(item) { %>
+            <div class="relative bg-red-100 rounded-lg shadow hover:shadow-xl transition-shadow duration-300">
+              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-lg">
+              <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-60 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-300">
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expired on:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                <form action="/delete-item/<%= item.id %>" method="POST" class="mt-2">
+                  <button type="submit" class="px-3 py-1 bg-red-600 rounded hover:bg-red-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+      
+      <!-- Repeat similar sections for Expiring Today and Expiring Soon -->
+      
+      <!-- Expiring Today -->
+      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Today</h2>
+      <% if (expiringToday.length === 0) { %>
+        <p class="text-gray-500">No items expiring today.</p>
+      <% } else { %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <% expiringToday.forEach(function(item) { %>
+            <div class="relative bg-yellow-100 rounded-lg shadow hover:shadow-xl transition-shadow duration-300">
+              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-lg">
+              <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-60 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-300">
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expires today:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                <form action="/delete-item/<%= item.id %>" method="POST" class="mt-2">
+                  <button type="submit" class="px-3 py-1 bg-yellow-600 rounded hover:bg-yellow-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+      
+      <!-- Expiring Soon -->
+      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Soon (Tomorrow)</h2>
+      <% if (expiringSoon.length === 0) { %>
+        <p class="text-gray-500">No items expiring tomorrow.</p>
+      <% } else { %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <% expiringSoon.forEach(function(item) { %>
+            <div class="relative bg-blue-100 rounded-lg shadow hover:shadow-xl transition-shadow duration-300">
+              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-lg">
+              <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-60 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-300">
+                <p><strong>Owner:</strong> <%= item.username %></p>
+                <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                <form action="/delete-item/<%= item.id %>" method="POST" class="mt-2">
+                  <button type="submit" class="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </section>
+    
+    <!-- Fridge Item Counts -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Fridge Item Counts</h2>
+      <% if (Object.keys(fridgeCounts).length === 0) { %>
+        <p class="text-gray-500">No items in any fridge.</p>
+      <% } else { %>
+        <ul class="list-disc list-inside">
+          <% for (let fridge in fridgeCounts) { %>
+            <li><strong><%= fridge %>:</strong> <%= fridgeCounts[fridge] %> item(s)</li>
+          <% } %>
+        </ul>
+      <% } %>
+    </section>
+    
+    <!-- Navigation Links -->
+    <div class="text-center">
+      <a href="/" class="text-indigo-600 hover:text-indigo-800">Back to Add Item</a> | 
+      <a href="/my-items" class="text-indigo-600 hover:text-indigo-800">My Items</a>
+    </div>
+    
+    <!-- JavaScript for View Mode Toggle -->
+    <script>
+      function setViewMode(mode) {
+        const listMode = document.getElementById('mode-list');
+        const previewMode = document.getElementById('mode-preview');
+        const galleryMode = document.getElementById('mode-gallery');
+        const toggleListBtn = document.getElementById('view-list');
+        const togglePreviewBtn = document.getElementById('view-preview');
+        const toggleGalleryBtn = document.getElementById('view-gallery');
+        
+        // Hide all modes
+        listMode.classList.add('hidden');
+        previewMode.classList.add('hidden');
+        galleryMode.classList.add('hidden');
+        
+        // Reset button styles
+        toggleListBtn.classList.remove('bg-indigo-600', 'text-white');
+        toggleListBtn.classList.add('bg-gray-200', 'text-gray-700');
+        togglePreviewBtn.classList.remove('bg-indigo-600', 'text-white');
+        togglePreviewBtn.classList.add('bg-gray-200', 'text-gray-700');
+        toggleGalleryBtn.classList.remove('bg-indigo-600', 'text-white');
+        toggleGalleryBtn.classList.add('bg-gray-200', 'text-gray-700');
+        
+        // Show selected mode and highlight button
+        if (mode === 'list') {
+          listMode.classList.remove('hidden');
+          toggleListBtn.classList.remove('bg-gray-200', 'text-gray-700');
+          toggleListBtn.classList.add('bg-indigo-600', 'text-white');
+        } else if (mode === 'preview') {
+          previewMode.classList.remove('hidden');
+          togglePreviewBtn.classList.remove('bg-gray-200', 'text-gray-700');
+          togglePreviewBtn.classList.add('bg-indigo-600', 'text-white');
+        } else if (mode === 'gallery') {
+          galleryMode.classList.remove('hidden');
+          toggleGalleryBtn.classList.remove('bg-gray-200', 'text-gray-700');
+          toggleGalleryBtn.classList.add('bg-indigo-600', 'text-white');
+        }
+      }
+      
+      // Initialize with Preview Mode active
+      document.addEventListener('DOMContentLoaded', () => {
+        setViewMode('preview');
+      });
+    </script>
+  </div>
+</body>
+</html>
