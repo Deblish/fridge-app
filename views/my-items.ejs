@@ -9,15 +9,10 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold text-center mb-8">Remove Your Items</h1>
+    <h1 class="text-3xl font-bold text-center mb-8">Find Your Items</h1>
     
-    <!-- Navigation Links -->
-    <div class="mt-10 text-center">
-      <a href="/monitor" class="text-indigo-600 hover:text-indigo-800">View Monitor</a>
-    </div>
-
     <!-- Error Message -->
-    <% if (typeof error !== 'undefined') { %>
+    <% if (typeof error !== 'undefined' && error) { %>
       <div class="mb-4 text-red-500 text-center"><%= error %></div>
     <% } %>
     
@@ -30,20 +25,42 @@
           name="username" 
           id="username" 
           required 
+          minlength="3"
           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         >
       </div>
       <div class="text-center">
         <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          View My Items
+          Search
         </button>
       </div>
     </form>
     
-    <!-- User's Items -->
-    <% if (typeof items !== 'undefined') { %>
+    <!-- Matching Usernames -->
+    <% if (typeof usernames !== 'undefined' && usernames.length > 0) { %>
       <div class="mt-10">
-        <h2 class="text-2xl font-semibold mb-6 text-center">Your Items</h2>
+        <h2 class="text-2xl font-semibold mb-6 text-center">Select Your Username</h2>
+        <form action="/my-items/select-username" method="POST" class="max-w-md mx-auto space-y-4">
+          <div>
+            <select name="selectedUsername" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+              <% usernames.forEach(function(username) { %>
+                <option value="<%= username %>"><%= username %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+              Continue
+            </button>
+          </div>
+        </form>
+      </div>
+    <% } %>
+    
+    <!-- User's Items -->
+    <% if (typeof items !== 'undefined' && items.length >= 0) { %>
+      <div class="mt-10">
+        <h2 class="text-2xl font-semibold mb-6 text-center">Your Items<% if (typeof selectedUsername !== 'undefined') { %> - <%= selectedUsername %><% } %></h2>
         <% if (items.length === 0) { %>
           <p class="text-center text-gray-500">You have no items in the fridge.</p>
         <% } else { %>
@@ -70,9 +87,9 @@
     
     <!-- Navigation Links -->
     <div class="mt-10 text-center">
-      <a href="/" class="text-indigo-600 hover:text-indigo-800">Back to Add Item</a>
+      <a href="/" class="text-indigo-600 hover:text-indigo-800">Back to Add Item</a> 
+      <!-- <a href="/monitor" class="text-indigo-600 hover:text-indigo-800">View Monitor</a> -->
     </div>
   </div>
 </body>
 </html>
-

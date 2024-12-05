@@ -15,7 +15,25 @@
     <% if (typeof deleted !== 'undefined' && deleted === 'true') { %>
       <div class="mb-4 text-green-500 text-center">Item successfully removed.</div>
     <% } %>
-    
+
+    <!-- Fridge Filter Buttons -->
+    <div class="flex justify-center mb-6 space-x-4">
+	<button 
+	  class="fridge-filter px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+	  data-fridge="all"
+	>
+	  All
+	</button>
+	<% for (let fridge in fridgeCounts) { %>
+	  <button 
+		class="fridge-filter px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+		data-fridge="<%= fridge %>"
+	  >
+		<%= fridge %> (<%= fridgeCounts[fridge] %>)
+	  </button>
+	<% } %>
+    </div>
+  
     <!-- View Mode Toggle Buttons -->
     <div class="flex justify-center mb-6 space-x-4">
       <button 
@@ -124,7 +142,8 @@
       <% } else { %>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <% expired.forEach(function(item) { %>
-            <div class="bg-red-100 p-4 rounded-lg shadow flex flex-col">
+            <!-- <div class="bg-red-100 p-4 rounded-lg shadow flex flex-col"> -->
+			<div class="item-card bg-red-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
               <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
               <div class="flex-grow">
                 <p><strong>Owner:</strong> <%= item.username %></p>
@@ -141,8 +160,6 @@
         </div>
       <% } %>
       
-      <!-- Repeat similar sections for Expiring Today and Expiring Soon -->
-      
       <!-- Expiring Today -->
       <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Today</h2>
       <% if (expiringToday.length === 0) { %>
@@ -150,7 +167,8 @@
       <% } else { %>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <% expiringToday.forEach(function(item) { %>
-            <div class="bg-yellow-100 p-4 rounded-lg shadow flex flex-col">
+            <!-- <div class="bg-yellow-100 p-4 rounded-lg shadow flex flex-col"> -->
+			<div class="item-card bg-yellow-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
               <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
               <div class="flex-grow">
                 <p><strong>Owner:</strong> <%= item.username %></p>
@@ -174,7 +192,8 @@
       <% } else { %>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <% expiringSoon.forEach(function(item) { %>
-            <div class="bg-blue-100 p-4 rounded-lg shadow flex flex-col">
+            <!-- <div class="bg-blue-100 p-4 rounded-lg shadow flex flex-col"> -->
+			<div class="item-card bg-blue-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
               <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
               <div class="flex-grow">
                 <p><strong>Owner:</strong> <%= item.username %></p>
@@ -269,70 +288,85 @@
       <% } %>
     </section>
     
-    <!-- Fridge Item Counts -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-semibold mb-4">Fridge Item Counts</h2>
-      <% if (Object.keys(fridgeCounts).length === 0) { %>
-        <p class="text-gray-500">No items in any fridge.</p>
-      <% } else { %>
-        <ul class="list-disc list-inside">
-          <% for (let fridge in fridgeCounts) { %>
-            <li><strong><%= fridge %>:</strong> <%= fridgeCounts[fridge] %> item(s)</li>
-          <% } %>
-        </ul>
-      <% } %>
-    </section>
-    
-    <!-- Navigation Links -->
-    <div class="text-center">
-      <a href="/" class="text-indigo-600 hover:text-indigo-800">Back to Add Item</a> | 
-      <a href="/my-items" class="text-indigo-600 hover:text-indigo-800">My Items</a>
-    </div>
-    
     <!-- JavaScript for View Mode Toggle -->
-    <script>
-      function setViewMode(mode) {
-        const listMode = document.getElementById('mode-list');
-        const previewMode = document.getElementById('mode-preview');
-        const galleryMode = document.getElementById('mode-gallery');
-        const toggleListBtn = document.getElementById('view-list');
-        const togglePreviewBtn = document.getElementById('view-preview');
-        const toggleGalleryBtn = document.getElementById('view-gallery');
-        
-        // Hide all modes
-        listMode.classList.add('hidden');
-        previewMode.classList.add('hidden');
-        galleryMode.classList.add('hidden');
-        
-        // Reset button styles
-        toggleListBtn.classList.remove('bg-indigo-600', 'text-white');
-        toggleListBtn.classList.add('bg-gray-200', 'text-gray-700');
-        togglePreviewBtn.classList.remove('bg-indigo-600', 'text-white');
-        togglePreviewBtn.classList.add('bg-gray-200', 'text-gray-700');
-        toggleGalleryBtn.classList.remove('bg-indigo-600', 'text-white');
-        toggleGalleryBtn.classList.add('bg-gray-200', 'text-gray-700');
-        
-        // Show selected mode and highlight button
-        if (mode === 'list') {
-          listMode.classList.remove('hidden');
-          toggleListBtn.classList.remove('bg-gray-200', 'text-gray-700');
-          toggleListBtn.classList.add('bg-indigo-600', 'text-white');
-        } else if (mode === 'preview') {
-          previewMode.classList.remove('hidden');
-          togglePreviewBtn.classList.remove('bg-gray-200', 'text-gray-700');
-          togglePreviewBtn.classList.add('bg-indigo-600', 'text-white');
-        } else if (mode === 'gallery') {
-          galleryMode.classList.remove('hidden');
-          toggleGalleryBtn.classList.remove('bg-gray-200', 'text-gray-700');
-          toggleGalleryBtn.classList.add('bg-indigo-600', 'text-white');
-        }
-      }
-      
-      // Initialize with Preview Mode active
-      document.addEventListener('DOMContentLoaded', () => {
-        setViewMode('preview');
-      });
-    </script>
+<!-- JavaScript for View Mode Toggle and Fridge Filter -->
+  <script>
+	function setViewMode(mode) {
+	  const listMode = document.getElementById('mode-list');
+	  const previewMode = document.getElementById('mode-preview');
+	  const galleryMode = document.getElementById('mode-gallery');
+	  const toggleListBtn = document.getElementById('view-list');
+	  const togglePreviewBtn = document.getElementById('view-preview');
+	  const toggleGalleryBtn = document.getElementById('view-gallery');
+	  
+	  // Hide all modes
+	  listMode.classList.add('hidden');
+	  previewMode.classList.add('hidden');
+	  galleryMode.classList.add('hidden');
+	  
+	  // Reset button styles
+	  toggleListBtn.classList.remove('bg-indigo-600', 'text-white');
+	  toggleListBtn.classList.add('bg-gray-200', 'text-gray-700');
+	  togglePreviewBtn.classList.remove('bg-indigo-600', 'text-white');
+	  togglePreviewBtn.classList.add('bg-gray-200', 'text-gray-700');
+	  toggleGalleryBtn.classList.remove('bg-indigo-600', 'text-white');
+	  toggleGalleryBtn.classList.add('bg-gray-200', 'text-gray-700');
+	  
+	  // Show selected mode and highlight button
+	  if (mode === 'list') {
+		listMode.classList.remove('hidden');
+		toggleListBtn.classList.remove('bg-gray-200', 'text-gray-700');
+		toggleListBtn.classList.add('bg-indigo-600', 'text-white');
+	  } else if (mode === 'preview') {
+		previewMode.classList.remove('hidden');
+		togglePreviewBtn.classList.remove('bg-gray-200', 'text-gray-700');
+		togglePreviewBtn.classList.add('bg-indigo-600', 'text-white');
+	  } else if (mode === 'gallery') {
+		galleryMode.classList.remove('hidden');
+		toggleGalleryBtn.classList.remove('bg-gray-200', 'text-gray-700');
+		toggleGalleryBtn.classList.add('bg-indigo-600', 'text-white');
+	  }
+	}
+  
+	function filterItemsByFridge(fridge) {
+	  // Update fridge buttons styling
+	  const fridgeButtons = document.querySelectorAll('.fridge-filter');
+	  fridgeButtons.forEach(button => {
+		if (button.getAttribute('data-fridge') === fridge) {
+		  button.classList.remove('bg-gray-200', 'text-gray-700');
+		  button.classList.add('bg-indigo-600', 'text-white');
+		} else {
+		  button.classList.remove('bg-indigo-600', 'text-white');
+		  button.classList.add('bg-gray-200', 'text-gray-700');
+		}
+	  });
+  
+	  // Show/hide items based on selected fridge
+	  const itemCards = document.querySelectorAll('.item-card');
+	  itemCards.forEach(card => {
+		if (fridge === 'all' || card.getAttribute('data-fridge') === fridge) {
+		  card.style.display = '';
+		} else {
+		  card.style.display = 'none';
+		}
+	  });
+	}
+  
+	document.addEventListener('DOMContentLoaded', () => {
+	  // Initialize with Preview Mode active
+	  setViewMode('preview');
+  
+	  // Add event listeners to fridge filter buttons
+	  const fridgeButtons = document.querySelectorAll('.fridge-filter');
+	  fridgeButtons.forEach(button => {
+		button.addEventListener('click', () => {
+		  const fridge = button.getAttribute('data-fridge');
+		  filterItemsByFridge(fridge);
+		});
+	  });
+	});
+  </script>
+  
   </div>
 </body>
 </html>
