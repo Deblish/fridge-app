@@ -7,16 +7,20 @@
   <link href="/css/styles.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen relative">
+
+  <!-- Pop-up Notification (added) -->
+  <div id="notification" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-white border-l-4 p-4 shadow-lg z-50">
+    <p id="notification-message" class="text-sm"></p>
+  </div>
+  <!-- End pop-up -->
+
   <div class="container mx-auto p-4">
     <h1 class="text-3xl font-bold text-center mb-8 cursor-pointer" onclick="window.location.href='/monitor'">
       Fridge Monitor
     </h1>
     
-    <!-- Success Message -->
-    <% if (typeof deleted !== 'undefined' && deleted === 'true') { %>
-      <div class="mb-4 text-green-500 text-center">Item successfully removed.</div>
-    <% } %>
+    <!-- Removed inline success message, now will use popup -->
 
     <!-- Fridge Filter Buttons -->
     <div class="flex justify-center mb-6 space-x-4">
@@ -111,10 +115,10 @@
       <% } %>
     </section>
 
-	<div class="mt-6 text-center">
-		<a href="/my-items" class="text-indigo-600 hover:text-indigo-800">My Items</a> |
-		<a href="/" class="text-indigo-600 hover:text-indigo-800">Add Item</a> 
-	  </div>
+    <div class="mt-6 text-center">
+      <a href="/my-items" class="text-indigo-600 hover:text-indigo-800">My Items</a> |
+      <a href="/" class="text-indigo-600 hover:text-indigo-800">Add Item</a> 
+    </div>
     
     <!-- JavaScript for Fridge Filter -->
     <script>
@@ -154,7 +158,25 @@
     
         // Initialize with 'All' filter active
         filterItemsByFridge('all');
+
+        // Check if item was deleted
+        const urlParams = new URLSearchParams(window.location.search);
+        const deleted = urlParams.get('deleted');
+        if (deleted === 'true') {
+          showNotification('Item successfully removed.', 'border-green-500 text-green-700');
+        }
       });
+
+      function showNotification(message, styleClasses) {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        notificationMessage.textContent = message;
+        notification.classList.remove('hidden');
+        notification.classList.add(styleClasses);
+        setTimeout(() => {
+          notification.classList.add('hidden');
+        }, 3000);
+      }
     </script>
   </div>
 </body>

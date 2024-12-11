@@ -206,34 +206,38 @@ app.get('/monitor', (req, res) => {
 
 // Delete Item
 app.post('/delete-item/:id', (req, res) => {
-  const id = req.params.id;
-
-  db.get(`SELECT image_path FROM items WHERE id = ?`, [id], (err, row) => {
-    if (err) {
-      console.error('Error fetching item:', err.message);
-      return res.status(500).send('Database error occurred.');
-    }
-
-    if (row) {
-      // Delete the image file
-      fs.unlink(row.image_path, (err) => {
-        if (err) {
-          console.error('Error deleting image file:', err.message);
-        }
-        // Delete the item from the database
-        db.run(`DELETE FROM items WHERE id = ?`, [id], function(err) {
-          if (err) {
-            console.error('Error deleting item:', err.message);
-            return res.status(500).send('Database error occurred.');
-          }
-          res.redirect('/monitor?deleted=true');
-        });
-      });
-    } else {
-      res.status(404).send('Item not found.');
-    }
+	const id = req.params.id;
+	const from = req.query.from; // <-- Get the optional 'from' parameter
+  
+	db.get(`SELECT image_path FROM items WHERE id = ?`, [id], (err, row) => {
+	  if (err) {
+		console.error('Error fetching item:', err.message);
+		return res.status(500).send('Database error occurred.');
+	  }
+  
+	  if (row) {
+		fs.unlink(row.image_path, (err) => {
+		  if (err) {
+			console.error('Error deleting image file:', err.message);
+		  }
+		  db.run(`DELETE FROM items WHERE id = ?`, [id], function(err) {
+			if (err) {
+			  console.error('Error deleting item:', err.message);
+			  return res.status(500).send('Database error occurred.');
+			}
+			// If from=my-items, redirect there, else monitor
+			if (from === 'my-items') {
+			  res.redirect('/my-items?deleted=true');
+			} else {
+			  res.redirect('/monitor?deleted=true');
+			}
+		  });
+		});
+	  } else {
+		res.status(404).send('Item not found.');
+	  }
+	});
   });
-});
 
 // Handle GET request for /my-items
 app.get('/my-items', (req, res) => {
