@@ -69,7 +69,9 @@
                 <div class="bg-green-100 p-4 rounded-lg shadow flex flex-col">
                   <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
                   <div class="flex-grow">
-                    <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                    <p><strong>Fridge:</strong> 
+						<%= item.fridge === 'Fridge A' ? 'Left Fridge' : (item.fridge === 'Fridge B' ? 'Right Fridge' : item.fridge) %>
+					</p>
                     <p><strong>Added on:</strong> <%= item.date_added %></p>
                     <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
                   </div>
