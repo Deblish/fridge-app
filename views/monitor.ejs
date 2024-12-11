@@ -9,19 +9,15 @@
 </head>
 <body class="bg-gray-100 min-h-screen relative">
 
-  <!-- Pop-up Notification (added) -->
   <div id="notification" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-white border-l-4 p-4 shadow-lg z-50">
     <p id="notification-message" class="text-sm"></p>
   </div>
-  <!-- End pop-up -->
 
   <div class="container mx-auto p-4">
     <h1 class="text-3xl font-bold text-center mb-8 cursor-pointer" onclick="window.location.href='/monitor'">
       Fridge Monitor
     </h1>
     
-    <!-- Removed inline success message, now will use popup -->
-
     <!-- Fridge Filter Buttons -->
     <div class="flex justify-center mb-6 space-x-4">
       <button 
@@ -40,78 +36,101 @@
       <% } %>
     </div>
   
-    <!-- Preview Mode -->
     <section id="mode-preview">
-      <!-- Expired Items Preview -->
-      <h2 class="text-2xl font-semibold mb-4">Expired Items</h2>
-      <% if (expired.length === 0) { %>
-        <p class="text-gray-500">No expired items.</p>
-      <% } else { %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <% expired.forEach(function(item) { %>
-            <div class="item-card bg-red-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
-              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
-              <div class="flex-grow">
-                <p><strong>Owner:</strong> <%= item.username %></p>
-                <p><strong>Expired on:</strong> <%= item.expiry_date %></p>
-                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+
+      <!-- If showAll is true, show all items -->
+      <% if (showAll) { %>
+        <h2 class="text-2xl font-semibold mb-4">All Items</h2>
+        <% if (items.length === 0) { %>
+          <p class="text-gray-500">No items found.</p>
+        <% } else { %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <% items.forEach(function(item) { %>
+              <div class="item-card bg-gray-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
+                <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+                <div class="flex-grow">
+                  <p><strong>Owner:</strong> <%= item.username %></p>
+                  <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                  <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                </div>
+                <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                  <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Remove</button>
+                </form>
               </div>
-              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
-                <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                  Remove
-                </button>
-              </form>
-            </div>
-          <% }); %>
-        </div>
-      <% } %>
-      
-      <!-- Expiring Today -->
-      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Today</h2>
-      <% if (expiringToday.length === 0) { %>
-        <p class="text-gray-500">No items expiring today.</p>
+            <% }); %>
+          </div>
+        <% } %>
+
       <% } else { %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <% expiringToday.forEach(function(item) { %>
-            <div class="item-card bg-yellow-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
-              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
-              <div class="flex-grow">
-                <p><strong>Owner:</strong> <%= item.username %></p>
-                <p><strong>Expires today:</strong> <%= item.expiry_date %></p>
-                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+        <!-- Original code for expired/expiring items -->
+        <h2 class="text-2xl font-semibold mb-4">Expired Items</h2>
+        <% if (expired.length === 0) { %>
+          <p class="text-gray-500">No expired items.</p>
+        <% } else { %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <% expired.forEach(function(item) { %>
+              <div class="item-card bg-red-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
+                <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+                <div class="flex-grow">
+                  <p><strong>Owner:</strong> <%= item.username %></p>
+                  <p><strong>Expired on:</strong> <%= item.expiry_date %></p>
+                  <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                </div>
+                <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                  <button type="submit" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    Remove
+                  </button>
+                </form>
               </div>
-              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
-                <button type="submit" class="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
-                  Remove
-                </button>
-              </form>
-            </div>
-          <% }); %>
-        </div>
-      <% } %>
-      
-      <!-- Expiring Soon -->
-      <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Soon (Tomorrow)</h2>
-      <% if (expiringSoon.length === 0) { %>
-        <p class="text-gray-500">No items expiring tomorrow.</p>
-      <% } else { %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <% expiringSoon.forEach(function(item) { %>
-            <div class="item-card bg-blue-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
-              <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
-              <div class="flex-grow">
-                <p><strong>Owner:</strong> <%= item.username %></p>
-                <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
-                <p><strong>Fridge:</strong> <%= item.fridge %></p>
+            <% }); %>
+          </div>
+        <% } %>
+        
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Today</h2>
+        <% if (expiringToday.length === 0) { %>
+          <p class="text-gray-500">No items expiring today.</p>
+        <% } else { %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <% expiringToday.forEach(function(item) { %>
+              <div class="item-card bg-yellow-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
+                <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+                <div class="flex-grow">
+                  <p><strong>Owner:</strong> <%= item.username %></p>
+                  <p><strong>Expires today:</strong> <%= item.expiry_date %></p>
+                  <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                </div>
+                <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                  <button type="submit" class="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                    Remove
+                  </button>
+                </form>
               </div>
-              <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
-                <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                  Remove
-                </button>
-              </form>
-            </div>
-          <% }); %>
-        </div>
+            <% }); %>
+          </div>
+        <% } %>
+        
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Expiring Soon (Tomorrow)</h2>
+        <% if (expiringSoon.length === 0) { %>
+          <p class="text-gray-500">No items expiring tomorrow.</p>
+        <% } else { %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <% expiringSoon.forEach(function(item) { %>
+              <div class="item-card bg-blue-100 p-4 rounded-lg shadow flex flex-col" data-fridge="<%= item.fridge %>">
+                <img src="/<%= item.image_path %>" alt="Item Image" class="w-full h-40 object-cover rounded-md mb-4">
+                <div class="flex-grow">
+                  <p><strong>Owner:</strong> <%= item.username %></p>
+                  <p><strong>Expires on:</strong> <%= item.expiry_date %></p>
+                  <p><strong>Fridge:</strong> <%= item.fridge %></p>
+                </div>
+                <form action="/delete-item/<%= item.id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                  <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
       <% } %>
     </section>
 
@@ -120,10 +139,8 @@
       <a href="/" class="text-indigo-600 hover:text-indigo-800">Add Item</a> 
     </div>
     
-    <!-- JavaScript for Fridge Filter -->
     <script>
       function filterItemsByFridge(fridge) {
-        // Update fridge buttons styling
         const fridgeButtons = document.querySelectorAll('.fridge-filter');
         fridgeButtons.forEach(button => {
           if (button.getAttribute('data-fridge') === fridge) {
@@ -134,8 +151,7 @@
             button.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
           }
         });
-    
-        // Show/hide items based on selected fridge
+
         const itemCards = document.querySelectorAll('.item-card');
         itemCards.forEach(card => {
           if (fridge === 'all' || card.getAttribute('data-fridge') === fridge) {
@@ -147,7 +163,6 @@
       }
     
       document.addEventListener('DOMContentLoaded', () => {
-        // Add event listeners to fridge filter buttons
         const fridgeButtons = document.querySelectorAll('.fridge-filter');
         fridgeButtons.forEach(button => {
           button.addEventListener('click', () => {
@@ -156,10 +171,8 @@
           });
         });
     
-        // Initialize with 'All' filter active
         filterItemsByFridge('all');
 
-        // Check if item was deleted
         const urlParams = new URLSearchParams(window.location.search);
         const deleted = urlParams.get('deleted');
         if (deleted === 'true') {

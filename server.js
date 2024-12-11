@@ -176,33 +176,44 @@ app.post('/add-item', upload.single('photo'), async (req, res) => {
 
 // Monitor Page
 app.get('/monitor', (req, res) => {
-  const today = formatDate(new Date());
-  const tomorrowDate = new Date();
-  tomorrowDate.setDate(new Date().getDate() + 1);
-  const tomorrow = formatDate(tomorrowDate);
-
-  db.all(`SELECT * FROM items`, [], (err, items) => {
-    if (err) {
-      console.error('Error fetching items:', err.message);
-      return res.status(500).send('Database error occurred.');
-    }
-
-    const expired = items.filter(item => item.expiry_date < today);
-    const expiringToday = items.filter(item => item.expiry_date === today);
-    const expiringSoon = items.filter(item => item.expiry_date === tomorrow);
-
-    const fridgeCounts = {};
-    items.forEach(item => {
-      if (fridgeCounts[item.fridge]) {
-        fridgeCounts[item.fridge]++;
-      } else {
-        fridgeCounts[item.fridge] = 1;
-      }
-    });
-
-    res.render('monitor', { expired, expiringToday, expiringSoon, fridgeCounts, deleted: req.query.deleted });
+	const today = formatDate(new Date());
+	const tomorrowDate = new Date();
+	tomorrowDate.setDate(new Date().getDate() + 1);
+	const tomorrow = formatDate(tomorrowDate);
+  
+	db.all(`SELECT * FROM items`, [], (err, items) => {
+	  if (err) {
+		console.error('Error fetching items:', err.message);
+		return res.status(500).send('Database error occurred.');
+	  }
+  
+	  // Determine if we should show all items
+	  const showAll = req.query.showall === 'true';
+  
+	  let expired = [];
+	  let expiringToday = [];
+	  let expiringSoon = [];
+  
+	  // Only filter if not showing all
+	  if (!showAll) {
+		expired = items.filter(item => item.expiry_date < today);
+		expiringToday = items.filter(item => item.expiry_date === today);
+		expiringSoon = items.filter(item => item.expiry_date === tomorrow);
+	  }
+  
+	  const fridgeCounts = {};
+	  items.forEach(item => {
+		if (fridgeCounts[item.fridge]) {
+		  fridgeCounts[item.fridge]++;
+		} else {
+		  fridgeCounts[item.fridge] = 1;
+		}
+	  });
+  
+	  // Pass showAll and items to the template
+	  res.render('monitor', { expired, expiringToday, expiringSoon, fridgeCounts, deleted: req.query.deleted, showAll, items });
+	});
   });
-});
 
 // Delete Item
 app.post('/delete-item/:id', (req, res) => {
@@ -246,39 +257,115 @@ app.get('/my-items', (req, res) => {
 
 // Handle POST request for /my-items
 app.post('/my-items', (req, res) => {
-  const inputUsername = req.body.username.trim();
-
-  if (inputUsername.length < 3) {
-    return res.render('my-items', { error: 'Please enter at least 3 characters.', items: undefined, usernames: undefined, selectedUsername: undefined });
-  }
-
-  // Search for usernames that match the input
-  db.all(`SELECT DISTINCT username FROM items WHERE username LIKE ?`, [`%${inputUsername}%`], (err, rows) => {
-    if (err) {
-      console.error('Error fetching usernames:', err.message);
-      return res.status(500).render('my-items', { error: 'Database error occurred.', items: undefined, usernames: undefined, selectedUsername: undefined });
-    }
-
-    if (rows.length === 0) {
-      // No matching usernames
-      return res.render('my-items', { error: 'No users found matching that username.', items: undefined, usernames: undefined, selectedUsername: undefined });
-    } else if (rows.length === 1) {
-      // Only one matching username, fetch items for that user
-      const username = rows[0].username;
-      db.all(`SELECT * FROM items WHERE username = ?`, [username], (err, items) => {
-        if (err) {
-          console.error('Error fetching items:', err.message);
-          return res.status(500).render('my-items', { error: 'Database error occurred.', items: undefined, usernames: undefined, selectedUsername: undefined });
-        }
-        res.render('my-items', { error: undefined, items, usernames: undefined, selectedUsername: username });
-      });
-    } else {
-      // Multiple matching usernames, display list for user to select
-      const usernames = rows.map(row => row.username);
-      res.render('my-items', { error: undefined, items: undefined, usernames, selectedUsername: undefined });
-    }
+	const inputUsername = req.body.username.trim();
+  
+	// Handle 'admin' hidden command
+	if (inputUsername.toLowerCase() === 'admin') {
+	  // Fetch all distinct usernames from items table
+	  db.all(`SELECT DISTINCT username FROM items`, [], (err, rows) => {
+		if (err) {
+		  console.error('Error fetching usernames:', err.message);
+		  return res.status(500).render('my-items', { error: 'Database error occurred.', items: undefined, usernames: undefined, selectedUsername: undefined });
+		}
+		if (rows.length === 0) {
+		  // No users found
+		  return res.render('my-items', { error: 'No users found in the database.', items: undefined, usernames: undefined, selectedUsername: undefined });
+		} else if (rows.length === 1) {
+		  // Only one user in the db, show their items directly
+		  const username = rows[0].username;
+		  db.all(`SELECT * FROM items WHERE username = ?`, [username], (err, items) => {
+			if (err) {
+			  console.error('Error fetching items:', err.message);
+			  return res.status(500).render('my-items', { error: 'Database error occurred.', items: undefined, usernames: undefined, selectedUsername: undefined });
+			}
+			res.render('my-items', { error: undefined, items, usernames: undefined, selectedUsername: username });
+		  });
+		} else {
+		  // Multiple usernames, display list
+		  const usernames = rows.map(row => row.username);
+		  res.render('my-items', { error: undefined, items: undefined, usernames, selectedUsername: undefined });
+		}
+	  });
+	  return; // Stop here for admin case
+	}
+  
+	// Handle 'monitor' hidden command
+	if (inputUsername.toLowerCase() === 'monitor') {
+	  // Redirect to monitor with showall=true
+	  return res.redirect('/monitor?showall=true');
+	}
+  
+	// Normal behavior otherwise
+	if (inputUsername.length < 3) {
+	  return res.render('my-items', { error: 'Please enter at least 3 characters.', items: undefined, usernames: undefined, selectedUsername: undefined });
+	}
+  
+	// Search for usernames that match the input
+	db.all(`SELECT DISTINCT username FROM items WHERE username LIKE ?`, [`%${inputUsername}%`], (err, rows) => {
+	  if (err) {
+		console.error('Error fetching usernames:', err.message);
+		return res.status(500).render('my-items', { error: 'Database error occurred.', items: undefined, usernames: undefined, selectedUsername: undefined });
+	  }
+  
+	  if (rows.length === 0) {
+		// No matching usernames
+		return res.render('my-items', { error: 'No users found matching that username.', items: undefined, usernames: undefined, selectedUsername: undefined });
+	  } else if (rows.length === 1) {
+		// Only one matching username, fetch items for that user
+		const username = rows[0].username;
+		db.all(`SELECT * FROM items WHERE username = ?`, [username], (err, items) => {
+		  if (err) {
+			console.error('Error fetching items:', err.message);
+			return res.status(500).render('my-items', { error: 'Database error occurred.', items: undefined, usernames: undefined, selectedUsername: undefined });
+		  }
+		  res.render('my-items', { error: undefined, items, usernames: undefined, selectedUsername: username });
+		});
+	  } else {
+		// Multiple matching usernames, display list for user to select
+		const usernames = rows.map(row => row.username);
+		res.render('my-items', { error: undefined, items: undefined, usernames, selectedUsername: undefined });
+	  }
+	});
   });
-});
+  
+  // Monitor Page
+  app.get('/monitor', (req, res) => {
+	const today = formatDate(new Date());
+	const tomorrowDate = new Date();
+	tomorrowDate.setDate(new Date().getDate() + 1);
+	const tomorrow = formatDate(tomorrowDate);
+  
+	db.all(`SELECT * FROM items`, [], (err, items) => {
+	  if (err) {
+		console.error('Error fetching items:', err.message);
+		return res.status(500).send('Database error occurred.');
+	  }
+  
+	  // If showall=true, we will render all items at once
+	  const showAll = req.query.showall === 'true';
+  
+	  // Only filter if not showing all
+	  let expired = [];
+	  let expiringToday = [];
+	  let expiringSoon = [];
+	  if (!showAll) {
+		expired = items.filter(item => item.expiry_date < today);
+		expiringToday = items.filter(item => item.expiry_date === today);
+		expiringSoon = items.filter(item => item.expiry_date === tomorrow);
+	  }
+  
+	  const fridgeCounts = {};
+	  items.forEach(item => {
+		if (fridgeCounts[item.fridge]) {
+		  fridgeCounts[item.fridge]++;
+		} else {
+		  fridgeCounts[item.fridge] = 1;
+		}
+	  });
+  
+	  res.render('monitor', { expired, expiringToday, expiringSoon, fridgeCounts, deleted: req.query.deleted, showAll, items });
+	});
+  });
 
 // Handle POST request for username selection
 app.post('/my-items/select-username', (req, res) => {
